@@ -69,6 +69,44 @@ STATIC_TARGET_ENERGY_DESCRIPTION = energy_description(
 )
 
 
+gates_description: Callable[
+    [str, str], SensorEntityDescription
+] = lambda key, name: SensorEntityDescription(
+    key=key,
+    device_class=None,
+    entity_registry_enabled_default=False,
+    entity_registry_visible_default=True,
+    has_entity_name=True,
+    name=name,
+    native_unit_of_measurement="Gates",
+)
+
+MAX_MOTION_GATES_DESCRIPTION = gates_description("max_motion_gates", "Max Motion Gates")
+MAX_STATIC_GATES_DESCRIPTION = gates_description("max_static_gates", "Max Static Gates")
+
+gates_energy_description: Callable[
+    [str, str], SensorEntityDescription
+] = lambda key, name: SensorEntityDescription(
+    key=key,
+    device_class=None,
+    entity_registry_enabled_default=False,
+    entity_registry_visible_default=True,
+    has_entity_name=True,
+    name=name,
+    native_unit_of_measurement="Target Energy",
+)
+
+MOTION_ENERGY_GATES = [
+    gates_energy_description(f"motion_energy_gate_{i}", f"Motion Energy Gate {i}")
+    for i in range(0, 9)
+]
+
+STATIC_ENERGY_GATES = [
+    gates_energy_description(f"static_energy_gate_{i}", f"Static Energy Gate {i}")
+    for i in range(0, 9)
+]
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -108,6 +146,22 @@ async def async_setup_entry(
                 entry.title,
                 DETECTION_DISTANCE_DESCRIPTION,
             ),
+            LD2410BLESensor(
+                data.coordinator,
+                data.device,
+                entry.title,
+                MAX_MOTION_GATES_DESCRIPTION,
+            ),
+            LD2410BLESensor(
+                data.coordinator,
+                data.device,
+                entry.title,
+                MAX_STATIC_GATES_DESCRIPTION,
+            ),
+        ]
+        + [
+            LD2410BLESensor(data.coordinator, data.device, entry.title, description)
+            for description in MOTION_ENERGY_GATES + STATIC_ENERGY_GATES
         ]
     )
 
